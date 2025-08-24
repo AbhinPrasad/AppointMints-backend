@@ -1,0 +1,25 @@
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
+      
+      - name: Deploy to EC2 and Restart Backend
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+            cd /home/ubuntu/my-app &&
+            git pull origin dev &&
+            npm install &&
+            npm run build &&
+            pm2 restart all || pm2 start npm --name "my-app" -- start
+            pm2 save
+          '
