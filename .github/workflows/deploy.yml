@@ -27,6 +27,6 @@ jobs:
             git pull origin dev &&
             npm install &&
             npm run build &&
-            pm2 restart all || pm2 start npm --name "appointmint-backend-dev" -- start
+            pm2 restart all || pm2 start npm --name "appointmint-backend" -- start
             pm2 save
           '
