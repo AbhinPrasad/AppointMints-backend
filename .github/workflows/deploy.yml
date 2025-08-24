@@ -1,4 +1,4 @@
-name: CI/CD Deploy to Dev EC2 Server
+name: Deploy Backend on Dev Branch
 
 on:
   push:
@@ -8,25 +8,22 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Setup SSH key
-        run: |
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key
-          chmod 600 private_key
-      
-      - name: Deploy to EC2 and Restart Backend
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
-            cd /home/ubuntu/my-app &&
-            git pull origin dev &&
-            npm install &&
-            npm run build &&
-            pm2 restart all || pm2 start npm --name "appointmints-dev" -- start
-            pm2 save
-          '
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.8.1
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+    - name: Deploy to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@3.7.55.253 << 'EOF'
+          cd /home/ubuntu/AppointMints-backend
+          git pull origin dev
+          npm install
+          npm run build
+          pm2 restart appointmint-backend
+        EOF
