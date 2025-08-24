@@ -1,10 +1,17 @@
+name: CI/CD Deploy to Dev EC2 Server
+
+on:
+  push:
+    branches:
+      - dev
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
+
       - name: Setup SSH key
         run: |
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key
